@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -16,14 +17,16 @@ import java.util.List;
 public class UserService {
     private final UserRepository userRepository;
 
-    public void create( UserRequest request ){
-        User user = User.builder()
-                .userId(request.getUserId())
-                .userName(request.getUserName())
-                .userEmail(request.getUserEmail())
-                .userImage(request.getUserImage())
-                .build();
-        userRepository.save(user);
+    public User create(UserRequest request) {
+        Optional<User> existingUser = userRepository.findByUserEmail(request.getUserEmail());
+        return existingUser.orElseGet(() -> {
+            User user = User.builder()
+                    .userName(request.getUserName())
+                    .userEmail(request.getUserEmail())
+                    .userImage(request.getUserImage())
+                    .build();
+            return userRepository.save(user);
+        });
     }
     public List<User> read() {
         return userRepository.findAll();
